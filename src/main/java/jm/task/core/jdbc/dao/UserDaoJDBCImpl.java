@@ -14,14 +14,14 @@ public class UserDaoJDBCImpl implements UserDao {
     private final String INSERT_USER = "INSERT INTO Users (id, name, lastName, age) VALUES (?, ?, ?, ?)";
     private final String DELETE_USER = "DELETE FROM Users WHERE id = ?";
     private final String SELECT_ALL_USERS = "SELECT * FROM Users";
-    private final String CLEAN_USERS = "DELETE FROM Users";
-
+    private final ThreadLocal<String> CLEAN_USERS = ThreadLocal.withInitial(() -> "DELETE FROM Users");
 
     private static long countId;
-    private static final Connection connection = Util.getConnection();
+    private Connection connection;
 
     public void createUsersTable() {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
             statement.executeUpdate(CREATE_TABLE_USERS);
             connection.commit();
         } catch (SQLException e) {
@@ -30,7 +30,8 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void dropUsersTable() {
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
             statement.executeUpdate(DROP_TABLE);
             connection.commit();
         } catch (SQLException e) {
@@ -39,7 +40,8 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT_USER)) {
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(INSERT_USER)) {
             preparedStatement.setLong(1, ++countId);
             preparedStatement.setString(2, name);
             preparedStatement.setString(3, lastName);
@@ -49,24 +51,36 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.printf("Пользователь с именем %s добавлен в базу данных\n", name);
             connection.commit();
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException exc) {
+                exc.printStackTrace();
+            }
             e.printStackTrace();
         }
     }
 
     public void removeUserById(long id) {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_USER)) {
             preparedStatement.setLong(1, id);
 
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException exc) {
+                exc.printStackTrace();
+            }
             e.printStackTrace();
         }
     }
 
     public List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
-        try (Statement statement = connection.createStatement()) {
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery(SELECT_ALL_USERS);
             while (rs.next()) {
                 long id = rs.getLong("id");
@@ -86,8 +100,9 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate(CLEAN_USERS);
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(CLEAN_USERS.get());
             connection.commit();
         } catch (SQLException e) {
             try {
@@ -95,6 +110,7 @@ public class UserDaoJDBCImpl implements UserDao {
             } catch (SQLException exc) {
                 exc.printStackTrace();
             }
+            e.printStackTrace();
         }
     }
 }
