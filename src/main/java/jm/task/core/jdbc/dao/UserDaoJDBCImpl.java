@@ -17,26 +17,20 @@ public class UserDaoJDBCImpl implements UserDao {
     private static final String CLEAN_USERS = "DELETE FROM Users";
 
     public void createUsersTable() {
-        try (Connection connection = Util.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                statement.execute(CREATE_TABLE_USERS);
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.execute(CREATE_TABLE_USERS);
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void dropUsersTable() {
-        try (Connection connection = Util.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate(DROP_TABLE);
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(DROP_TABLE);
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -85,20 +79,19 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public List<User> getAllUsers() {
         List<User> list = new ArrayList<>();
-        try (Connection connection = Util.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                ResultSet rs = statement.executeQuery(SELECT_ALL_USERS);
-                while (rs.next()) {
-                    long id = rs.getLong("id");
-                    String name = rs.getString("name");
-                    String lastName = rs.getString("lastName");
-                    byte age = rs.getByte("age");
-                    User user = new User(name, lastName, age);
-                    user.setId(id);
-                    list.add(user);
-                }
-                return list;
+        try (Connection connection = Util.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet rs = statement.executeQuery(SELECT_ALL_USERS);
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String name = rs.getString("name");
+                String lastName = rs.getString("lastName");
+                byte age = rs.getByte("age");
+                User user = new User(name, lastName, age);
+                user.setId(id);
+                list.add(user);
             }
+            return list;
         } catch (SQLException e) {
             e.printStackTrace();
         }
