@@ -44,12 +44,7 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.printf("Пользователь с именем %s добавлен в базу данных\n", name);
             connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                e.printStackTrace();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
+            e.printStackTrace();
         }
     }
 
@@ -59,12 +54,7 @@ public class UserDaoJDBCImpl implements UserDao {
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                e.printStackTrace();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
+            e.printStackTrace();
         }
     }
 
@@ -93,12 +83,7 @@ public class UserDaoJDBCImpl implements UserDao {
             statement.executeUpdate(CLEAN_USERS);
             connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                e.printStackTrace();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
+            e.printStackTrace();
         }
     }
 }
